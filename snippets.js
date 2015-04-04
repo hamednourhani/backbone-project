@@ -269,3 +269,266 @@ var TodoView = Backbone.View.extend({
     this.model.bind('change', _.bind(this.render, this));
   }
 });
+
+
+/*------------Collection----------------------------------------------------*/
+var Todo = Backbone.Model.extend({
+  defaults: {
+    title: '',
+    completed: false
+      }
+});
+
+var TodosCollection = Backbone.Collection.extend({
+  model: Todo
+});
+
+var myTodo = new Todo({title:'Read the whole book', id: 2});
+
+// pass array of models on collection instantiation
+var todos = new TodosCollection([myTodo]);
+console.log("Collection size: " + todos.length); // Collection size: 1
+
+var Todo = Backbone.Model.extend({
+  defaults: {
+    title: '',
+    completed: false
+  }
+});
+
+var TodosCollection = Backbone.Collection.extend({
+  model: Todo
+});
+
+var a = new Todo({ title: 'Go to Jamaica.'}),
+    b = new Todo({ title: 'Go to China.'}),
+    c = new Todo({ title: 'Go to Disneyland.'});
+
+var todos = new TodosCollection([a,b]);
+console.log("Collection size: " + todos.length);
+// Logs: Collection size: 2
+
+todos.add(c);
+console.log("Collection size: " + todos.length);
+// Logs: Collection size: 3
+
+todos.remove([a,b]);
+console.log("Collection size: " + todos.length);
+// Logs: Collection size: 1
+
+todos.remove(c);
+console.log("Collection size: " + todos.length);
+// Logs: Collection size: 0
+
+/*-----------Merge Collection items-------------------------------*/
+var items = new Backbone.Collection;
+items.add([{ id : 1, name: "Dog" , age: 3}, { id : 2, name: "cat" , age: 2}]);
+items.add([{ id : 1, name: "Bear" }], {merge: true });/*******************/
+items.add([{ id : 2, name: "lion" }]); // merge: false
+ 
+console.log(JSON.stringify(items.toJSON()));
+
+/*Retrieving Models---------------------------------------------*/
+var myTodo = new Todo({title:'Read the whole book', id: 2});
+
+// pass array of models on collection instantiation
+var todos = new TodosCollection([myTodo]);
+
+var todo2 = todos.get(2);
+
+// Models, as objects, are passed by reference
+console.log(todo2 === myTodo); // true
+// [{"id":1,"name":"Bear","age":3},{"id":2,"name":"cat","age":2}]
+// extends the previous example
+
+var todoCid = todos.get(todo2.cid);
+
+// As mentioned in previous example, 
+// models are passed by reference
+console.log(todoCid === myTodo); // true
+
+/*Listening for events--------add & remove--------------------------------------*/
+
+var TodosCollection = new Backbone.Collection();
+
+TodosCollection.on("add", function(todo) {
+  console.log("I should " + todo.get("title") + ". Have I done it before? "  );
+});
+  TodosCollection.add([
+  { title: 'go to Jamaica', completed: false },
+  { title: 'go to China', completed: false },
+  { title: 'go to Disneyland', completed: true }
+]);
+
+// The above logs:
+// I should go to Jamaica. Have I done it before? No.
+// I should go to China. Have I done it before? No.
+// I should go to Disneyland. Have I done it before? Yeah!
+var TodosCollection = new Backbone.Collection();
+
+// log a message if a model in the collection changes
+TodosCollection.on("change:title", function(model) {
+    console.log("Changed my mind! I should " + model.get('title'));
+});
+
+TodosCollection.add([
+  { title: 'go to Jamaica.', completed: false, id: 3 },
+]);
+
+var myTodo = TodosCollection.get(3);
+
+var Todo = Backbone.Model.extend({
+  defaults: {
+    title: '',
+    completed: false
+  }
+});
+
+var myTodo = new Todo();
+myTodo.set({title: 'Buy some cookies', completed: true});
+
+myTodo.on({
+   'change:title' : titleChanged,
+   'change:completed' : stateChanged
+});
+
+function titleChanged(){
+  console.log('The title was changed!');
+}
+
+function stateChanged(){
+  console.log('The state was changed!');
+}
+
+myTodo.set({title: 'Get the groceries'});
+// The title was changed! 
+myTodo.set('title', 'go fishing');
+// Logs: Changed my mind! I should go fishin
+var Todo = Backbone.Model.extend({
+  defaults: {
+    title: '',
+    completed: false
+  }
+});
+
+var myTodo = new Todo();
+myTodo.set({title: 'Buy some cookies', completed: true});
+
+myTodo.on({
+   'change:title' : titleChanged,
+   'change:completed' : stateChanged
+});
+
+function titleChanged(){
+  console.log('The title was changed!');
+}
+
+function stateChanged(){
+  console.log('The state was changed!');
+}
+
+myTodo.set({title: 'Get the groceries'});
+// The title was changed! 
+
+// Define an object with two counters
+var TodoCounter = { counterA: 0, counterB: 0 };
+// Mix in Backbone Events
+_.extend(TodoCounter, Backbone.Events);
+
+// Increment counterA, triggering an event
+var incrA = function(){ 
+  TodoCounter.counterA += 1; 
+  // This triggering will not 
+  // produce any effect on the counters
+  TodoCounter.trigger('event'); 
+};
+
+// Increment counterB
+var incrB = function(){ 
+  TodoCounter.counterB += 1; 
+};
+
+// Use once rather than having to explicitly unbind
+// our event listener
+TodoCounter.once('event', incrA);
+TodoCounter.once('event', incrB);
+
+// Trigger the event for the first time
+TodoCounter.trigger('event');
+
+// Check out output
+console.log(TodoCounter.counterA === 1); // true
+console.log(TodoCounter.counterB === 1); // true
+
+TodosCollection.set([
+    { id: 1, title: 'go to Jamaica.', completed: true },
+    { id: 2, title: 'go to China.', completed: false },
+    { id: 4, title: 'go to Disney World.', completed: false }
+]);
+
+TodosCollection.reset([
+  { title: 'go to Cuba.', completed: false }
+]);
+// Above logs 'Collection reset.'
+myCollection.reset();
+var todo = new Backbone.Model();
+var todos = new Backbone.Collection([todo])
+.on('reset', function(todos, options) {
+  console.log(options.previousModels);
+  console.log([todo]);
+  console.log(options.previousModels[0] === todo); // true
+});
+todos.reset([]);
+
+var Beatle = Backbone.Model.extend({
+  defaults: {
+  job: 'musician'
+  }
+});
+
+// Create models for each member of the Beatles
+var john = new Beatle({ firstName: 'John', lastName: 'Lennon'});
+var paul = new Beatle({ firstName: 'Paul', lastName: 'McCartney'});
+var george = new Beatle({ firstName: 'George', lastName: 'Harrison'});
+var ringo = new Beatle({ firstName: 'Ringo', lastName: 'Starr'});
+
+// Create a collection using our models
+var theBeatles = new Backbone.Collection([john, paul, george, ringo]);
+
+// Create a separate model for Pete Best
+var pete = new Beatle({ firstName: 'Pete', lastName: 'Best'});
+
+// Update the collection
+theBeatles.set([john, paul, george, pete]);
+
+// Fires a `remove` event for 'Ringo', and an `add` event for 'Pete'.
+// Updates any of John, Paul and Georges's attributes that may have
+// changed over the years.
+var collection = new Backbone.Collection([
+  { name: 'Tim', age: 5 },
+  { name: 'Ida', age: 26 },
+  { name: 'Rob', age: 55 }
+]);
+
+/*chain methods in backbone by Chain() and value()-----------------------------------------------------*/
+
+var filteredNames = collection.chain() // start chain, returns wrapper around collection's models
+  .filter(function(item) { return item.get('age') > 10; }) // returns wrapped array excluding Tim
+  .map(function(item) { return item.get('name'); }) // returns wrapped array containing remaining names
+  .value(); // terminates the chain and returns the resulting array
+
+console.log(filteredNames); // logs: ['Ida', 'Rob']
+Some of the Backbone-specific methods do return this, which means they can be chained as well:
+
+var collection = new Backbone.Collection();
+
+collection
+    .add({ name: 'John', age: 23 }) 
+    .add({ name: 'Harry', age: 33 })
+    .add({ name: 'Steve', age: 41 });
+
+var names = collection.pluck('name');
+console.log(names); // logs: ['John', 'Harry', 'Steve']
+
+
+/*-----------------RESTful Persistence-----------------------------------------------------------------------*/
