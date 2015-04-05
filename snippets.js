@@ -532,3 +532,314 @@ console.log(names); // logs: ['John', 'Harry', 'Steve']
 
 
 /*-----------------RESTful Persistence-----------------------------------------------------------------------*/
+
+/*Fetching models from the server---------------*/
+
+var Todo = Backbone.Model.extend({
+  defaults: {
+    title: '',
+    completed: false
+  }
+});
+
+var TodosCollection = Backbone.Collection.extend({
+  model: Todo,
+  url: '/todos' //url for fetching data
+});
+var todos = new TodosCollection();
+todos.fetch(); // sends HTTP GET to /todos
+
+/*Saving models to the server------------------*/
+var Todo = Backbone.Model.extend({
+  defaults: {
+    title: '',
+    completed: false
+  }
+});
+
+var TodosCollection = Backbone.Collection.extend({
+  model: Todo,
+  url: '/todos'
+});
+
+var todos = new TodosCollection();
+todos.fetch();
+
+var todo2 = todos.get(2);
+todo2.set('title', 'go fishing');
+todo2.save(); // sends HTTP PUT to /todos/2
+
+todos.create({title: 'Try out code samples'}); // sends 
+/*As mentioned earlier, a model’s validate()
+method is called automatically by save() and
+will trigger an invalid event on the model 
+if validation fails.*/
+
+/*Deleting models from the server------------------------*/
+var Todo = Backbone.Model.extend({
+  defaults: {
+    title: '',
+    completed: false
+  }
+});
+
+var TodosCollection = Backbone.Collection.extend({
+  model: Todo,
+  url: '/todos'
+});
+
+var todos = new TodosCollection();
+todos.fetch();
+
+var todo2 = todos.get(2);
+todo2.destroy(); // sends HTTP DELETE to /todos/2 and removes
+
+
+/*Note : Calling destroy on a Model will return false 
+if the model isNew:*/
+var todo = new Backbone.Model();
+console.log(todo.destroy());
+// false
+
+/*Options------------------*/
+// Save partial using PATCH
+model.clear().set({id: 1, a: 1, b: 2, c: 3, d: 4});
+model.save();
+model.save({b: 2, d: 4}, {patch: true});
+console.log(this.syncArgs.method);
+
+// reset collection by fetching
+collection.fetch ({reset : true});
+
+/*--------------Events---------------------------------*/
+var ourObject = {};
+
+// Mixin
+_.extend(ourObject, Backbone.Events);
+
+// Add a custom event
+ourObject.on('dance', function(msg){
+  console.log('We triggered ' + msg);
+});
+
+// Trigger the custom event
+ourObject.trigger('dance', 'our event');
+
+/*-----------------*/
+var ourObject = {};
+
+// Mixin
+_.extend(ourObject, Backbone.Events);
+
+function dancing (msg) { console.log("We started " + msg); }
+
+// Add namespaced custom events
+ourObject.on("dance:tap", dancing);
+ourObject.on("dance:break", dancing);
+
+// Trigger the custom events
+ourObject.trigger("dance:tap", "tap dancing. Yeah!");
+ourObject.trigger("dance:break", "break dancing. Yeah!");
+
+// This one triggers nothing as no listener listens for it
+ourObject.trigger("dance", "break dancing. Yeah!");
+
+/*------------------------------------*/
+var ourObject = {};
+
+// Mixin
+_.extend(ourObject, Backbone.Events);
+
+function dancing (msg) { console.log("We are dancing. " + msg); }
+function jumping (msg) { console.log("We are jumping. " + msg); }
+
+// Add two listeners to the same event
+ourObject.on("move", dancing);
+ourObject.on("move", jumping);
+
+// Trigger the events. Both listeners are called.
+ourObject.trigger("move", "Yeah!");
+
+// Removes specified listener
+ourObject.off("move", dancing);
+
+// Trigger the events again. One listener left.
+ourObject.trigger("move", "Yeah, jump, jump!");
+Finally, as we have seen in our previous examples, trigg
+
+/*----------------------------------*/
+var ourObject = {};
+
+// Mixin
+_.extend(ourObject, Backbone.Events);
+
+function doAction (msg) { console.log("We are " + msg); }
+
+// Add event listeners
+ourObject.on("dance", doAction);
+ourObject.on("jump", doAction);
+ourObject.on("skip", doAction);
+
+// Single event
+ourObject.trigger("dance", 'just dancing.');
+
+// Multiple events
+ourObject.trigger("dance jump skip", 'very tired from so much action.');
+trigger can pass multiple arguments to the callback function:
+
+var ourObject = {};
+
+// Mixin
+_.extend(ourObject, Backbone.Events);
+
+function doAction (action, duration) {
+  console.log("We are " + action + ' for ' + duration ); 
+}
+
+// Add event listeners
+ourObject.on("dance", doAction);
+ourObject.on("jump", doAction);
+ourObject.on("skip", doAction);
+
+// Passing multiple arguments to single event
+ourObject.trigger("dance", 'dancing', "5 minutes");
+
+// Passing multiple arguments to multiple events
+ourObject.trigger("dance jump skip", 'on fire', "15 minut");
+
+/*listenTo() and stopListening()--------------------*/
+var a = _.extend({}, Backbone.Events);
+var b = _.extend({}, Backbone.Events);
+var c = _.extend({}, Backbone.Events);
+
+// add listeners to A for events on B and C
+a.listenTo(b, 'anything', function(event){ console.log("anything happened"); });
+a.listenTo(c, 'everything', function(event){ console.log("everything happened"); });
+
+// trigger an event
+b.trigger('anything'); // logs: anything happened
+
+// stop listening
+a.stopListening();
+
+// A does not receive these events
+b.trigger('anything');
+c.trigger('everything');
+
+/*Note : stopListening for Views ------------------------*/
+var view = new Backbone.View();
+var b = _.extend({}, Backbone.Events);
+
+view.listenTo(b, 'all', function(){ console.log(true); });
+b.trigger('anything');  // logs: true
+
+view.listenTo(b, 'all', function(){ console.log(false); });
+view.remove(); // stopListening() implicitly called
+b.trigger('anything');  // does not log anything
+
+/*-----------Events and Views------------------------------*/
+var View = Backbone.View.extend({
+
+    el: '#todo',
+
+    // bind to DOM event using events property
+    events: {
+        'click [type="checkbox"]': 'clicked',
+    },
+
+    initialize: function () {
+        // bind to DOM event using jQuery
+        this.$el.click(this.jqueryClicked);
+
+        // bind to API event
+        this.on('apiEvent', this.callback);
+    },
+
+    // 'this' is view
+    clicked: function(event) {
+        console.log("events handler for " + this.el.outerHTML);
+        this.trigger('apiEvent', event.type);
+    },
+
+    // 'this' is handling DOM element
+    jqueryClicked: function(event) {
+        console.log("jQuery handler for " + this.outerHTML);
+    },
+
+    callback: function(eventType) {
+        console.log("event type was " + eventType);
+    }
+
+});
+var view = new View();
+
+
+/*--------------Routers---------------------------------*/
+var TodoRouter = Backbone.Router.extend({
+    /* define the route and function maps for this router */
+    routes: {
+        "about" : "showAbout",
+        /* Sample usage: http://example.com/#about */
+
+        "todo/:id" : "getTodo",
+        /* This is an example of using a ":param" variable which allows us to match
+        any of the components between two URL slashes */
+        /* Sample usage: http://example.com/#todo/5 */
+
+        "search/:query" : "searchTodos",
+        /* We can also define multiple routes that are bound to the same map function,
+        in this case searchTodos(). Note below how we're optionally passing in a
+        reference to a page number if one is supplied */
+        /* Sample usage: http://example.com/#search/job */
+
+        "search/:query/p:page" : "searchTodos",
+        /* As we can see, URLs may contain as many ":param"s as we wish */
+        /* Sample usage: http://example.com/#search/job/p1 */
+
+        "todos/:id/download/*documentPath" : "downloadDocument",
+        /* This is an example of using a *splat. Splats are able to match any number of
+        URL components and can be combined with ":param"s*/
+        /* Sample usage: http://example.com/#todos/5/download/files/Meeting_schedule.doc */
+
+        /* If you wish to use splats for anything beyond default routing, it's probably a good
+        idea to leave them at the end of a URL otherwise you may need to apply regular
+        expression parsing on your fragment */
+
+        "*other"    : "defaultRoute",
+        /* This is a default route that also uses a *splat. Consider the
+        default route a wildcard for URLs that are either not matched or where
+        the user has incorrectly typed in a route path manually */
+        /* Sample usage: http://example.com/# <anything> */
+
+        "optional(/:item)": "optionalItem",
+        "named/optional/(y:z)": "namedOptionalItem"
+        /* Router URLs also support optional parts via parentheses, without having
+           to use a regex.  */
+    },
+
+    showAbout: function(){
+    },
+
+    getTodo: function(id){
+        /*
+        Note that the id matched in the above route will be passed to this function
+        */
+        console.log("You are trying to reach todo " + id);
+    },
+
+    searchTodos: function(query, page){
+        var page_number = page || 1;
+        console.log("Page number: " + page_number + " of the results for todos containing the word: " + query);
+    },
+
+    downloadDocument: function(id, path){
+    },
+
+    defaultRoute: function(other){
+        console.log('Invalid. You attempted to reach:' + other);
+    }
+});
+
+/* Now that we have a router setup, we need to instantiate it */
+
+var myTodoRouter = new TodoRouter();
