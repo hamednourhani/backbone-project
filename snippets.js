@@ -843,3 +843,180 @@ var TodoRouter = Backbone.Router.extend({
 /* Now that we have a router setup, we need to instantiate it */
 
 var myTodoRouter = new TodoRouter();
+
+/*---------------.navigate()--------------------------*/
+// Let's imagine we would like a specific fragment (edit) once a user opens a single todo
+var TodoRouter = Backbone.Router.extend({
+  routes: {
+    "todo/:id": "viewTodo",
+    "todo/:id/edit": "editTodo"
+    // ... other routes
+  },
+
+  viewTodo: function(id){
+    console.log("View todo requested.");
+    this.navigate("todo/" + id + '/edit'); // updates the fragment for us, but doesn't trigger the route
+  },
+
+  editTodo: function(id) {
+    console.log("Edit todo opened.");
+  }
+});
+
+var myTodoRouter = new TodoRouter();
+
+Backbone.history.start();
+
+// Go to: http://localhost/#todo/4
+//
+// URL is updated to: http://localhost/#todo/4/edit
+// but editTodo() function is not invoked even though location we end up is mapped to it.
+//
+// logs: View todo requested.
+
+/*----navigate({trigger : true})----------------------------------*/
+
+var TodoRouter = Backbone.Router.extend({
+  routes: {
+    "todo/:id": "viewTodo",
+    "todo/:id/edit": "editTodo"
+    // ... other routes
+  },
+
+  viewTodo: function(id){
+    console.log("View todo requested.");
+    this.navigate("todo/" + id + '/edit', {trigger: true}); // updates the fragment and triggers the route as well
+  },
+
+  editTodo: function(id) {
+    console.log("Edit todo opened.");
+  }
+});
+
+var myTodoRouter = new TodoRouter();
+
+Backbone.history.start();
+
+// Go to: http://localhost/#todo/4
+//
+// URL is updated to: http://localhost/#todo/4/edit
+// and this time editTodo() function is invoked.
+//
+// logs:
+// View todo requested.
+// Edit todo opened.
+
+
+/*---------------Backbone’s Sync API---------------------------------*/
+Backbone.emulateHTTP = false; // set to true if server cannot handle HTTP PUT or HTTP DELETE
+Backbone.emulateJSON = false; // set to true if server cannot handle application/json requests
+
+
+// Create a new library collection
+var Library = Backbone.Collection.extend({
+    url : function() { return '/library'; }
+});
+
+// Define attributes for our model
+var attrs = {
+    title  : "The Tempest",
+    author : "Bill Shakespeare",
+    length : 123
+};
+  
+// Create a new Library instance
+var library = new Library;
+
+// Create a new instance of a model within our collection
+library.create(attrs, {wait: false});
+  
+// Update with just emulateHTTP
+library.first().save({id: '2-the-tempest', author: 'Tim Shakespeare'}, {
+  emulateHTTP: true
+});
+    
+// Check the ajaxSettings being used for our request
+console.log(this.ajaxSettings.url === '/library/2-the-tempest'); // true
+console.log(this.ajaxSettings.type === 'POST'); // true
+console.log(this.ajaxSettings.contentType === 'application/json'); // true
+
+// Parse the data for the request to confirm it is as expected
+var data = JSON.parse(this.ajaxSettings.data);
+console.log(data.id === '2-the-tempest');  // true
+console.log(data.author === 'Tim Shakespeare'); // true
+console.log(data.length === 123); // true
+Similarly, we could just update using emulateJSON:
+
+library.first().save({id: '2-the-tempest', author: 'Tim Shakespeare'}, {
+  emulateJSON: true
+});
+
+console.log(this.ajaxSettings.url === '/library/2-the-tempest'); // true
+console.log(this.ajaxSettings.type === 'PUT'); // true
+console.log(this.ajaxSettings.contentType ==='application/x-www-form-urlencoded'); // true
+
+var data = JSON.parse(this.ajaxSettings.data.model);
+console.log(data.id === '2-the-tempest');
+console.log(data.author ==='Tim Shakespeare');
+console.log(data.length === 123);
+
+/*---------------Overriding Backbone.sync------------------------------*/
+Backbone.sync = function(method, model, options) {
+};
+
+var methodMap = {
+  'create': 'POST',
+  'update': 'PUT',
+  'patch':  'PATCH',
+  'delete': 'DELETE',
+  'read':   'GET'
+};
+
+var id_counter = 1;
+Backbone.sync = function(method, model) {
+  console.log("I've been passed " + method + " with " + JSON.stringify(model));
+  if(method === 'create'){ model.set('id', id_counter++); }
+};
+
+Backbone.sync = function(method, model, options) {
+
+  function success(result) {
+    // Handle successful results from MyAPI
+    if (options.success) {
+      options.success(result);
+    }
+  }
+
+  function error(result) {
+    // Handle error results from MyAPI
+    if (options.error) {
+      options.error(result);
+    }
+  }
+
+  options || (options = {});
+
+  switch (method) {
+    case 'create':
+      return MyAPI.create(model, success, error);
+
+    case 'update':
+      return MyAPI.update(model, success, error);
+
+    case 'patch':
+      return MyAPI.patch(model, success, error);
+
+    case 'delete':
+      return MyAPI.destroy(model, success, error);
+
+    case 'read':
+      if (model.cid) {
+        return MyAPI.find(model, success, error);
+      } else {
+        return MyAPI.findAll(model, success, error);
+      }
+  }
+};
+
+
+/*------------------End of Bases---------------------------------*/
