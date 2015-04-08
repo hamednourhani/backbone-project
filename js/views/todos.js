@@ -56,4 +56,5 @@ var app = app || {};
         this.close();
       }
     }
+    
   });
