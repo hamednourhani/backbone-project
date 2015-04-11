@@ -16,5 +16,5 @@ var Workspace = Backbone.Router.extend({
     }
     
   });
-var app.TodoRouter = new Workspace();
+app.TodoRouter = new Workspace();
 Backbone.history.start();
